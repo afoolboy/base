@@ -11,8 +11,7 @@
 #define FL_LOGFILE_MAXSIZE ( 1 * 1024 * 1024 *1024 )  // 1GB
 #define FL_LOGLINE_MAXSIZE 4096
 
-int currentLogLevel = LOG_LEVEL_INFO;
-
+int currentLogLevel = FL_LOG_LEVEL;
 
 static int logToFile = 0;
 static int logToConsole = 1;

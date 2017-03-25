@@ -55,7 +55,7 @@ void fl_log_output(int level,char *file,char *func,int line,char *fmt,...);
 void fl_setLogLevel(int level);
 
 
-#ifdef FL_CLOSE_LEVEL
+#ifdef FL_CLOSE_LOG
 #define FL_LOG(level,fmt,...)
 #else
 #define FL_LOG(level,fmt,...)   \

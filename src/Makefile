@@ -44,14 +44,14 @@ $(OUTPUT_OBJS_DIR)/%.o: %.c
 $(OUTPUT_OBJS_DIR)/%.d: %.cpp
 	@set -e;rm -rf $@;\
 	g++ -MM $(CFLAGS) $< > $@.$$$$.tmp; \
-	sed 's,\($*\)\.o[ :],$(OUTPUT_OBJS_DIR)/\1.o $@ :.g' < $@.$$$$.tmp > $@; 
-	#rm -rf $@.$$$$.tmp
+	sed 's,\($*\)\.o[ :],$(OUTPUT_OBJS_DIR)/\1.o $@ : ,g' < $@.$$$$.tmp > $@; \
+	rm -rf $@.$$$$.tmp
 
 $(OUTPUT_OBJS_DIR)/%.d: %.c
 	@set -e;rm -rf $@;\
 	gcc -MM $(CFLAGS) $< > $@.$$$$.tmp; \
-	sed 's,\($*\)\.o[ :]*,$(OUTPUT_OBJS_DIR)/\1.o $@ : ,g' < $@.$$$$.tmp > $@; 
-	#rm -rf $@.$$$$.tmp
+	sed 's,\($*\)\.o[ :]*,$(OUTPUT_OBJS_DIR)/\1.o $@ : ,g' < $@.$$$$.tmp > $@; \
+	rm -rf $@.$$$$.tmp
 
 
 
@@ -69,7 +69,7 @@ clean:
 
 
 
-include $(patsubst %.cpp, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.cpp))
-include $(patsubst %.c, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.c))
+# include $(patsubst %.cpp, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.cpp))
+# include $(patsubst %.c, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.c))
 
-# -include $(OBJS:.o=.d)
+-include $(OBJS:.o=.d)
