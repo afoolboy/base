@@ -1,6 +1,7 @@
 
 GCC=g++
 RM=rm -rf
+TARGET=libbase.a
 
 OUTPUT_OBJS_DIR=../objs
 OUTPUT_INCLUDE_DIR=../include
@@ -29,9 +30,9 @@ LIB_DIR := -L.
 LDFLAGS=
 
 
-all: lib_base.a
+all: $(TARGET)
 
-lib_base.a: $(OBJS)
+$(TARGET): $(OBJS)
 	ar rcs $(OUTPUT_OBJS_DIR)/$@ $^
 
 $(OUTPUT_OBJS_DIR)/%.o: %.cpp
@@ -43,19 +44,22 @@ $(OUTPUT_OBJS_DIR)/%.o: %.c
 $(OUTPUT_OBJS_DIR)/%.d: %.cpp
 	@set -e;rm -rf $@;\
 	g++ -MM $(CFLAGS) $< > $@.$$$$.tmp; \
-	sed 's,\($*\)\.o[ :],$(OUTPUT_OBJS_DIR)/\1.o $@ :.g' < $@.$$$$.tmp > $@; \
-	rm -rf $@.$$$$.tmp
+	sed 's,\($*\)\.o[ :],$(OUTPUT_OBJS_DIR)/\1.o $@ :.g' < $@.$$$$.tmp > $@; 
+	#rm -rf $@.$$$$.tmp
 
 $(OUTPUT_OBJS_DIR)/%.d: %.c
 	@set -e;rm -rf $@;\
 	gcc -MM $(CFLAGS) $< > $@.$$$$.tmp; \
-	sed 's,\($*\)\.o[ :],$(OUTPUT_OBJS_DIR)/\1.o $@ :.g' < $@.$$$$.tmp > $@; \
-	rm -rf $@.$$$$.tmp
+	sed 's,\($*\)\.o[ :]*,$(OUTPUT_OBJS_DIR)/\1.o $@ : ,g' < $@.$$$$.tmp > $@; 
+	#rm -rf $@.$$$$.tmp
+
 
 
 install:
+	$(RM) ../include/*
+	$(RM) ../lib/*
 	cp ./*.h ../include/
-	cp $(OUTPUT_OBJS_DIR)/lib_base.a ../lib/
+	cp $(OUTPUT_OBJS_DIR)/$(TARGET) ../lib/
 
 .PHONY:clean install 
 	
@@ -64,3 +68,8 @@ clean:
 
 
 
+
+include $(patsubst %.cpp, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.cpp))
+include $(patsubst %.c, $(OUTPUT_OBJS_DIR)/%.d, $(wildcard *.c))
+
+# -include $(OBJS:.o=.d)

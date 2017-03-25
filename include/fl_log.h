@@ -71,7 +71,7 @@ void fl_setLogLevel(int level);
 
 
 #define LOG_TRACE(fmt,...)          FL_LOG(LOG_LEVEL_TRACE, fmt,##__VA_ARGS__);
-#define LOG_DEBUG(fmt,...)          FL_LOG(LOG_LEVEL_DEUBG, fmt,##__VA_ARGS__);  
+#define LOG_DEBUG(fmt,...)          FL_LOG(LOG_LEVEL_DEBUG, fmt,##__VA_ARGS__);  
 #define LOG_INFO(fmt,...)           FL_LOG(LOG_LEVEL_INFO,  fmt,##__VA_ARGS__);
 #define LOG_WARN(fmt,...)           FL_LOG(LOG_LEVEL_WARN,  fmt,##__VA_ARGS__);
 #define LOG_ERR(fmt,...)            FL_LOG(LOG_LEVEL_ERR,   fmt,##__VA_ARGS__);
