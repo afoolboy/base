@@ -4,17 +4,28 @@
 #include <stdint.h>
 #include <time.h>
 #include <stdarg.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <string.h>
 
 #include "fl_log.h"
 
 
-#define FL_LOGFILE_MAXSIZE ( 1 * 1024 * 1024 *1024 )  // 1GB
+//#define FL_LOGFILE_MAXSIZE ( 1 * 1024 * 1024 *1024 )  // 1GB
+#define FL_LOGFILE_MAXSIZE ( 1 * 256 )  // 256B for test
+
 #define FL_LOGLINE_MAXSIZE 4096
 
 int currentLogLevel = FL_LOG_LEVEL;
 
 static int logToFile = 0;
 static int logToConsole = 1;
+
+void fl_setLogLevel(int level)
+{
+    currentLogLevel = level;
+}
 
 char *get_logLevel(char *levelStr,uint32_t size)
 {
@@ -58,7 +69,7 @@ char* get_currentTime(char *timeStr, uint32_t size)
    /*int tm_isdst;       [> daylight saving time <]*/
    /*};*/
     // 20170325_00:00:00
-    snprintf(timeStr,size,"%04d%02d%02d_%02d%02d%02d",
+    snprintf(timeStr,size,"%04d%02d%02d_%02d:%02d:%02d",
                 t_tm->tm_year + 1900,
                 t_tm->tm_mon,
                 t_tm->tm_mday,
@@ -69,9 +80,96 @@ char* get_currentTime(char *timeStr, uint32_t size)
     return timeStr;
 }
 
+static FILE *fp;
+static char logFileName[256]={0};
+
+
+void logfile_open()
+{
+    logToFile = 1;
+}
+
+void setLogfileName(char *name)
+{
+    if(*logFileName!=0) return;
+    /*fprintf(stderr,"set logfile:%s\n",name);*/
+    snprintf(logFileName,sizeof(logFileName)-1,"%s",name);
+}
+
+
+// return:
+// 1 for need open
+// 0 for no need open
+// -1 for err
+int checkNeedOpenLogFile()
+{
+    // check file name
+    if(fp==NULL){
+        if(*logFileName==0)
+            snprintf(logFileName,sizeof(logFileName)-1,"../log/log");
+        return 1;
+    }
+
+    // check size
+    struct stat stat_info;
+    if(fstat(fileno(fp),&stat_info)){
+        fprintf(stderr,"[%s::%s(%d)] err:%s\n",__FILE__,__FUNCTION__,\
+                __LINE__,strerror(errno));
+        return -1;
+    }
+
+    if(stat_info.st_size < FL_LOGFILE_MAXSIZE ) return 0;
+    return 1;
+}
+
+// return:
+// 0 for Ok
+// -1 for failed
+int checkFileOpen()
+{
+    int iRet = checkNeedOpenLogFile();
+    if(iRet != 1) return iRet;
+
+    char oldLogFileName[512]={0};
+    char newLogFileName[512]={0};
+    int i = 8;
+    if( fp!=NULL ){
+        fclose(fp);
+        while(i>=0){
+            snprintf(newLogFileName,sizeof(newLogFileName)-1,"%s_%d.log",logFileName,i+1);
+            snprintf(oldLogFileName,sizeof(oldLogFileName)-1,"%s_%d.log",logFileName,i);
+            rename(oldLogFileName,newLogFileName);
+            i--;
+        }
+    }
+    else{
+            snprintf(newLogFileName,sizeof(newLogFileName)-1,"%s_0.log",logFileName);
+    }
+
+    fp = fopen(newLogFileName,"a+");
+    if(NULL==fp){
+        fprintf(stderr,"fopen(%s) failed(%s)\n",newLogFileName,strerror(errno));
+        iRet = -1;
+    }
+
+    dup2(fileno(fp),STDOUT_FILENO);
+    dup2(fileno(fp),STDERR_FILENO);
+
+    return iRet==-1?-1:0;
+}
 
 void logfile(char *output)
 {
+    if(!output) return;
+    int iRet = checkFileOpen();
+    if(iRet==-1) { fprintf(stderr,"checkFileOpen failed\n");return;}
+    if(!fp){
+        fprintf(stderr,"[-]can't get log file fp\n");
+        return;
+    }
+
+    fprintf(fp,"%s\n",output);
+    fflush(fp);
 
     return ;
 }
@@ -96,14 +194,11 @@ void fl_log_output(int level,char *file,char *func,int line,char *fmt,...)
     vsnprintf(output+index,FL_LOGLINE_MAXSIZE -1 -index, fmt, ap);
     va_end(ap);
 
-    if(logToFile) logfile(output);
-
-    if(logToConsole) fprintf(stderr,"%s\n",output);
+    if(logToFile) 
+        logfile(output);
+    else
+        fprintf(stderr,"%s\n",output);
 
     return;
 }
 
-void fl_setLogLevel(int level)
-{
-    currentLogLevel = level;
-}

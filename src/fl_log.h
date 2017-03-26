@@ -54,6 +54,8 @@ extern int currentLogLevel;
 void fl_log_output(int level,char *file,char *func,int line,char *fmt,...);
 void fl_setLogLevel(int level);
 
+void logfile_open();
+void setLogfileName(char *name);
 
 #ifdef FL_CLOSE_LOG
 #define FL_LOG(level,fmt,...)
