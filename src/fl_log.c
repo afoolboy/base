@@ -12,8 +12,8 @@
 #include "fl_log.h"
 
 
-//#define FL_LOGFILE_MAXSIZE ( 1 * 1024 * 1024 *1024 )  // 1GB
-#define FL_LOGFILE_MAXSIZE ( 1 * 256 )  // 256B for test
+#define FL_LOGFILE_MAXSIZE ( 1 * 1024 * 1024 *1024 )  // 1GB
+// #define FL_LOGFILE_MAXSIZE ( 1 * 256 )  // 256B for test
 
 #define FL_LOGLINE_MAXSIZE 4096
 
